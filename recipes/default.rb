@@ -18,3 +18,26 @@ end
 package 'mongodb-org' do
   action :upgrade
 end
+
+service 'mongod' do
+  supports status: true, restart: true, reload: true
+  action [:enable, :start]
+end
+
+link '/etc/mongod/mongod.conf' do
+  action :delete
+end
+
+link '/etc/systemd/system/mongod.service' do
+  action :delete
+end
+
+template '/etc/mongod.conf' do
+  source 'mongod.conf.erb'
+  notifies :restart, 'service[mongod]'
+end
+
+template '/etc/systemd/system/mongod.service' do
+  source 'mongod.service.erb'
+  notifies :restart, 'service[mongod]'
+end

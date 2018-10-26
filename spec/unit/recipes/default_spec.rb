@@ -19,6 +19,10 @@ describe 'mongodb::default' do
       expect { chef_run }.to_not raise_error
     end
 
+    it 'should update all sources' do
+      expect(chef_run).to update_apt_update('update')
+    end
+
     it 'should install mongod' do
       expect(chef_run).to upgrade_package "mongodb-org"
     end
@@ -27,16 +31,28 @@ describe 'mongodb::default' do
       expect(chef_run).to add_apt_repository('mongodb-org')
     end
 
-    it 'should update all sources' do
-      expect(chef_run).to update_apt_update('update')
+    it 'should enable the mongod service' do
+      expect(chef_run).to enable_service "mongod"
     end
 
-    it 'should create a symlink of mongod.conf from sites-available to sites-enabled' do
-      expect(chef_run).to create_link('/etc/mongodb/sites-enabled/mongod.conf').with_link_type(:symbolic)
+    it 'should start the mongod service' do
+      expect(chef_run).to start_service "mongod"
     end
 
-    it 'should delete the symlink from the default config in sites-enabled' do
-      expect(chef_run).to delete_link('/etc/mongodb/sites-enabled/default')
+    it "should delete /etc/mongod/mongod.conf" do
+      expect(chef_run).to delete_link('/etc/mongod/mongod.conf')
+    end
+
+    it "should delete /etc/systemd/system/mongod.service" do
+      expect(chef_run).to delete_link('/etc/systemd/system/mongod.service')
+    end
+
+    it "should create file mongod.conf in /etc" do
+      expect(chef_run).to create_template('/etc/mongod.conf')
+    end
+
+    it "should create file mongod.service in /etc/systemd/system" do
+      expect(chef_run).to create_template('/etc/systemd/system/mongod.service')
     end
 
   end
